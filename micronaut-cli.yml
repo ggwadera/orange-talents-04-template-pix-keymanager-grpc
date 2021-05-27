@@ -1,0 +1,6 @@
+applicationType: grpc
+defaultPackage: br.com.zup.ggwadera
+testFramework: junit
+sourceLanguage: kotlin
+buildTool: gradle_kotlin
+features: [annotation-api, app-name, data, data-jpa, gradle, grpc, jdbc-hikari, junit, kotlin, kotlin-application, kotlin-extension-functions, logback, mockito, postgres, readme, shade, testcontainers, yaml]
