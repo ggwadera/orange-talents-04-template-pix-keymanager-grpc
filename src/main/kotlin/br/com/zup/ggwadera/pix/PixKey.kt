@@ -1,7 +1,5 @@
 package br.com.zup.ggwadera.pix
 
-import org.hibernate.annotations.Generated
-import org.hibernate.annotations.GenerationTime
 import java.util.*
 import javax.persistence.*
 import javax.validation.constraints.NotBlank
@@ -31,8 +29,6 @@ class PixKey(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0
 
-    @Column(nullable = false, columnDefinition = "uuid default gen_random_uuid()")
-    @Generated(GenerationTime.INSERT)
-    lateinit var uuid: UUID
-        private set
+    @Column(nullable = false)
+    val uuid: UUID = UUID.randomUUID()
 }
