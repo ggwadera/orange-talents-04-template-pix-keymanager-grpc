@@ -7,13 +7,11 @@ import br.com.zup.ggwadera.NewPixKeyRequest
 import br.com.zup.ggwadera.PixServiceGrpcKt
 import br.com.zup.ggwadera.pix.AccountType
 import br.com.zup.ggwadera.pix.KeyType
-import io.micronaut.validation.Validated
 import java.util.*
 import javax.inject.Singleton
 
 @Singleton
 @Suppress("unused")
-@Validated
 class NewPixKeyEndpoint(private val newPixKeyService: NewPixKeyService) :
     PixServiceGrpcKt.PixServiceCoroutineImplBase() {
 
