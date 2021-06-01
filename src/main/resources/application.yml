@@ -1,12 +1,24 @@
 micronaut:
   application:
     name: keyManagerGrpc
+
 datasources:
   default:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: ${DB_URL:`jdbc:postgresql://localhost:5432/key-manager`}
     driverClassName: org.postgresql.Driver
-    username: postgres
-    password: ''
+    username: ${DB_USER:keymanager}
+    password: ${DB_PW:secretpassword}
     schema-generate: CREATE_DROP
     dialect: POSTGRES
-jpa.default.properties.hibernate.hbm2ddl.auto: update
+
+jpa:
+  default:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: update
+        show_sql: true
+        format_sql: true
+
+services:
+  erp: 'http://localhost:9091'
