@@ -1,4 +1,4 @@
-package br.com.zup.ggwadera.pix.newkey
+package br.com.zup.ggwadera.pix.register
 
 import br.com.zup.ggwadera.pix.AccountType
 import br.com.zup.ggwadera.pix.KeyType

@@ -7,8 +7,8 @@ option objc_class_prefix = "HLW";
 
 package br.com.zup.ggwadera;
 
-service PixService {
-  rpc AddPixKey (NewPixKeyRequest) returns (NewPixKeyReply) {}
+service RegisterKeyService {
+  rpc RegisterPixKey (NewPixKeyRequest) returns (NewPixKeyReply) {};
 }
 
 service DeleteKeyService {

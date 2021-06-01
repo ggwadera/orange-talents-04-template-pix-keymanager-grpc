@@ -1,4 +1,4 @@
-package br.com.zup.ggwadera.pix.newkey
+package br.com.zup.ggwadera.pix.register
 
 import br.com.zup.ggwadera.itau.ItauClient
 import br.com.zup.ggwadera.pix.KeyType
@@ -12,7 +12,7 @@ import javax.validation.Valid
 
 @Singleton
 @Validated
-class NewPixKeyService(
+class RegisterKeyService(
     private val pixKeyRepository: PixKeyRepository,
     private val itauClient: ItauClient
 ) {

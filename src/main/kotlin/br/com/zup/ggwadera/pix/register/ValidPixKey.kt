@@ -1,4 +1,4 @@
-package br.com.zup.ggwadera.pix.newkey
+package br.com.zup.ggwadera.pix.register
 
 import io.micronaut.core.annotation.AnnotationValue
 import io.micronaut.validation.validator.constraints.ConstraintValidator
