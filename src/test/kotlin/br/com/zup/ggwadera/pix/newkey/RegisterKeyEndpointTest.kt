@@ -76,7 +76,7 @@ internal class NewPixKeyEndpointTest {
 
         val response = grpcClient.addPixKey(request)
         assertFalse(response.pixId.isNullOrBlank())
-        val created = pixKeyRepository.findByUuid(UUID.fromString(response.pixId))
+        val created = pixKeyRepository.findByUuidAndClientId(UUID.fromString(response.pixId), clientId)
         assertNotNull(created)
         with(created!!) {
             assertEquals(clientId, this.clientId)

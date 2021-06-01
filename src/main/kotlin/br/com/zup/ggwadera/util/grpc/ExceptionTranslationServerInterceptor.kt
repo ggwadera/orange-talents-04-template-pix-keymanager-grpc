@@ -1,6 +1,7 @@
 package br.com.zup.ggwadera.util.grpc
 
 import br.com.zup.ggwadera.util.exception.AlreadyExistsException
+import br.com.zup.ggwadera.util.exception.NotFoundException
 import io.grpc.*
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import javax.inject.Singleton
@@ -24,6 +25,7 @@ class ExceptionTranslationServerInterceptor : ServerInterceptor {
                 is AlreadyExistsException -> Status.ALREADY_EXISTS
                 is HttpClientResponseException -> Status.INTERNAL
                 is ConstraintViolationException -> Status.INVALID_ARGUMENT
+                is NotFoundException -> Status.NOT_FOUND
                 else -> Status.UNKNOWN
             }.withDescription(cause?.message).withCause(cause)
             return super.close(translatedStatus, trailers)
