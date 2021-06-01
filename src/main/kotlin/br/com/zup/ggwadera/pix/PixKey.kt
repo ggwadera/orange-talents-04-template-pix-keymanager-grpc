@@ -6,6 +6,12 @@ import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 
 @Entity
+@Table(
+    indexes = [
+        Index(name = "idx_uuid", columnList = "uuid", unique = true),
+        Index(name = "idx_uuid_clientId", columnList = "uuid, clientId")
+    ]
+)
 class PixKey(
     @field:NotNull
     @Column(nullable = false)
