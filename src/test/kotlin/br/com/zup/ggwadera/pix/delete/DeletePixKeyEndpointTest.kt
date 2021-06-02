@@ -28,22 +28,18 @@ internal class DeletePixKeyEndpointTest(
     private val grpcClient: DeleteKeyServiceGrpc.DeleteKeyServiceBlockingStub
 ) {
 
-    companion object {
-        private val clientId: UUID = UUID.randomUUID()
-        private const val key = "test@email.com"
-    }
-
-    private var pixKey: PixKey = PixKey(clientId, key, KeyType.EMAIL, AccountType.CONTA_CORRENTE)
+    private lateinit var pixKey: PixKey
 
     @BeforeEach
     internal fun setUp() {
-        val entity = PixKey(
-            clientId = clientId,
-            key = key,
-            keyType = KeyType.EMAIL,
-            accountType = AccountType.CONTA_CORRENTE
+        pixKey = pixKeyRepository.save(
+            PixKey(
+                clientId = UUID.randomUUID(),
+                key = "test@email.com",
+                keyType = KeyType.EMAIL,
+                accountType = AccountType.CONTA_CORRENTE
+            )
         )
-        pixKey = pixKeyRepository.save(entity)
     }
 
     @AfterEach
@@ -62,14 +58,14 @@ internal class DeletePixKeyEndpointTest(
     @Test
     internal fun `deve remover chave com sucesso`() {
         val request = DeletePixKeyRequest.newBuilder()
-            .setClientId(clientId.toString())
+            .setClientId(pixKey.clientId.toString())
             .setPixId(pixKey.uuid.toString())
             .build()
 
         val response = grpcClient.deletePixKey(request)
 
         with(response) {
-            assertEquals(clientId.toString(), this.clientId)
+            assertEquals(pixKey.clientId.toString(), this.clientId)
             assertEquals(pixKey.uuid.toString(), this.pixId)
         }
         assertFalse(pixKeyRepository.existsById(pixKey.id))
@@ -78,7 +74,7 @@ internal class DeletePixKeyEndpointTest(
     @Test
     internal fun `deve retornar NOT_FOUND caso chave nao exista`() {
         val request = DeletePixKeyRequest.newBuilder()
-            .setClientId(clientId.toString())
+            .setClientId(pixKey.clientId.toString())
             .setPixId(UUID.randomUUID().toString())
             .build()
 
