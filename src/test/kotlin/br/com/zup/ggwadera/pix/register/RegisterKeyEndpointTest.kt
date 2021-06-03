@@ -1,14 +1,14 @@
-package br.com.zup.ggwadera.pix.newkey
+package br.com.zup.ggwadera.pix.register
 
 import br.com.zup.ggwadera.NewPixKeyRequest
 import br.com.zup.ggwadera.RegisterKeyServiceGrpc
-import br.com.zup.ggwadera.itau.ClientDataResponse
-import br.com.zup.ggwadera.itau.Instituicao
+import br.com.zup.ggwadera.bcb.BankAccount
+import br.com.zup.ggwadera.bcb.BcbClient
+import br.com.zup.ggwadera.bcb.CreatePixKeyRequest
+import br.com.zup.ggwadera.bcb.CreatePixKeyResponse
+import br.com.zup.ggwadera.itau.AccountResponse
 import br.com.zup.ggwadera.itau.ItauClient
-import br.com.zup.ggwadera.pix.AccountType
-import br.com.zup.ggwadera.pix.KeyType
-import br.com.zup.ggwadera.pix.PixKey
-import br.com.zup.ggwadera.pix.PixKeyRepository
+import br.com.zup.ggwadera.pix.*
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -24,7 +24,8 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.mockito.Mockito.*
+import org.mockito.kotlin.*
+import java.time.LocalDateTime
 import java.util.*
 import java.util.stream.Stream
 import javax.inject.Inject
@@ -34,16 +35,16 @@ import br.com.zup.ggwadera.KeyType as GrpcKeyType
 
 @MicronautTest(transactional = false)
 @Suppress("unused")
-internal class RegisterKeyEndpointTest {
+internal class RegisterKeyEndpointTest(
+    private val pixKeyRepository: PixKeyRepository,
+    private val grpcClient: RegisterKeyServiceGrpc.RegisterKeyServiceBlockingStub,
+) {
 
     @Inject
-    lateinit var grpcClient: RegisterKeyServiceGrpc.RegisterKeyServiceBlockingStub
+    private lateinit var itauClient: ItauClient
 
     @Inject
-    lateinit var pixKeyRepository: PixKeyRepository
-
-    @Inject
-    lateinit var itauClient: ItauClient
+    private lateinit var bcbClient: BcbClient
 
     @AfterEach
     internal fun tearDown() {
@@ -51,9 +52,10 @@ internal class RegisterKeyEndpointTest {
     }
 
     @MockBean(ItauClient::class)
-    internal fun mockItauClient(): ItauClient {
-        return mock(ItauClient::class.java)
-    }
+    internal fun mockItauClient() = mock<ItauClient>()
+
+    @MockBean(BcbClient::class)
+    internal fun mockBcbClient() = mock<BcbClient>()
 
     @ParameterizedTest
     @MethodSource("validKeysProvider")
@@ -66,23 +68,68 @@ internal class RegisterKeyEndpointTest {
             .setAccountType(GrpcAccountType.CONTA_CORRENTE)
             .build()
 
-        `when`(itauClient.getClientInfo(clientId)).thenReturn(
-            ClientDataResponse(
-                id = clientId,
-                nome = "Bruce Wayne",
-                cpf = "80349185042",
-                instituicao = Instituicao(nome = "Itaú", ispb = "Er3Z746")
+        whenever(itauClient.getAccount(clientId, AccountType.CONTA_CORRENTE)).thenReturn(
+            AccountResponse(
+                tipo = AccountType.CONTA_CORRENTE,
+                instituicao = AccountResponse.BankResponse(
+                    nome = "Itaú Unibanco",
+                    ispb = Account.ISPB_ITAU_UNIBANCO
+                ),
+                agencia = "0123",
+                numero = "012345",
+                titular = AccountResponse.OwnerResponse(
+                    id = clientId,
+                    nome = "Bill Gates",
+                    cpf = "12345678901"
+                )
+            )
+        )
+
+        whenever(
+            bcbClient.registerKey(
+                CreatePixKeyRequest(
+                    key = key,
+                    keyType = KeyType.valueOf(keyType.name),
+                    bankAccount = BankAccount(
+                        participant = Account.ISPB_ITAU_UNIBANCO,
+                        branch = "0123",
+                        accountNumber = "012345",
+                        accountType = BankAccount.AccountType.CACC
+                    ),
+                    owner = br.com.zup.ggwadera.bcb.Owner(
+                        type = br.com.zup.ggwadera.bcb.Owner.OwnerType.NATURAL_PERSON,
+                        name = "Bill Gates",
+                        taxIdNumber = "12345678901"
+                    )
+                )
+            )
+        ).thenReturn(
+            CreatePixKeyResponse(
+                key = if (keyType != GrpcKeyType.RANDOM) key else UUID.randomUUID().toString(),
+                keyType = KeyType.valueOf(keyType.name),
+                createdAt = LocalDateTime.now(),
+                bankAccount = BankAccount(
+                    participant = Account.ISPB_ITAU_UNIBANCO,
+                    branch = "0123",
+                    accountNumber = "012345",
+                    accountType = BankAccount.AccountType.CACC
+                ),
+                owner = br.com.zup.ggwadera.bcb.Owner(
+                    type = br.com.zup.ggwadera.bcb.Owner.OwnerType.NATURAL_PERSON,
+                    name = "Bill Gates",
+                    taxIdNumber = "12345678901"
+                )
             )
         )
 
         val response = grpcClient.registerPixKey(request)
         assertFalse(response.pixId.isNullOrBlank())
-        val created = pixKeyRepository.findByUuidAndClientId(UUID.fromString(response.pixId), clientId)
+        val created = pixKeyRepository.findByUuidAndOwnerId(UUID.fromString(response.pixId), clientId)
         assertNotNull(created)
         with(created!!) {
-            assertEquals(clientId, this.clientId)
+            assertEquals(clientId, owner.id)
             assertEquals(KeyType.valueOf(keyType.name), this.keyType)
-            assertEquals(AccountType.CONTA_CORRENTE, this.accountType)
+            assertEquals(AccountType.CONTA_CORRENTE, account.type)
             if (keyType != GrpcKeyType.RANDOM) {
                 assertEquals(key, this.key)
             }
@@ -116,10 +163,20 @@ internal class RegisterKeyEndpointTest {
         val key = "test@email.com"
         pixKeyRepository.save(
             PixKey(
-                clientId = clientId,
-                key = key,
+                key = "test@email.com",
                 keyType = KeyType.EMAIL,
-                accountType = AccountType.CONTA_CORRENTE
+                account = Account(
+                    participant = Account.ISPB_ITAU_UNIBANCO,
+                    branch = "0123",
+                    number = "012345",
+                    type = AccountType.CONTA_CORRENTE
+                ),
+                owner = Owner(
+                    id = clientId,
+                    name = "Bill Gates",
+                    taxIdNumber = "12345678901"
+                ),
+                createdAt = LocalDateTime.now()
             )
         )
         val response = assertThrows<StatusRuntimeException> {
@@ -133,6 +190,7 @@ internal class RegisterKeyEndpointTest {
             )
         }
         verify(itauClient, never()).getClientInfo(clientId)
+        verify(bcbClient, never()).registerKey(any())
         assertEquals(1, pixKeyRepository.count())
         assertEquals(Status.ALREADY_EXISTS.code, response.status.code)
     }
@@ -140,7 +198,7 @@ internal class RegisterKeyEndpointTest {
     @Test
     internal fun `deve retornar erro caso cliente nao seja encontrado no sistema itau`() {
         val clientId = UUID.randomUUID()
-        `when`(itauClient.getClientInfo(clientId)).thenReturn(null)
+        whenever(itauClient.getAccount(clientId, AccountType.CONTA_CORRENTE)).thenReturn(null)
 
         val response = assertThrows<StatusRuntimeException> {
             grpcClient.registerPixKey(
@@ -153,7 +211,7 @@ internal class RegisterKeyEndpointTest {
             )
         }
 
-        verify(itauClient).getClientInfo(clientId)
+        verify(itauClient).getAccount(clientId, AccountType.CONTA_CORRENTE)
         assertEquals(0, pixKeyRepository.count())
         assertEquals(Status.FAILED_PRECONDITION.code, response.status.code)
     }
