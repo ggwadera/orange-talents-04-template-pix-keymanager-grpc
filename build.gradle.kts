@@ -46,6 +46,7 @@ dependencies {
     implementation("io.micronaut.beanvalidation:micronaut-hibernate-validator")
     implementation("org.hibernate:hibernate-validator:6.1.6.Final")
     implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut.xml:micronaut-jackson-xml")
 
     annotationProcessor("io.micronaut:micronaut-validation")
 
