@@ -46,6 +46,7 @@ dependencies {
     implementation("io.micronaut.beanvalidation:micronaut-hibernate-validator")
     implementation("org.hibernate:hibernate-validator:6.1.6.Final")
     implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut.xml:micronaut-jackson-xml")
 
     annotationProcessor("io.micronaut:micronaut-validation")
 
@@ -54,6 +55,7 @@ dependencies {
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     testImplementation("org.mockito:mockito-core")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation("io.micronaut.test:micronaut-test-junit5")
