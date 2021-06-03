@@ -38,7 +38,7 @@ class RegisterKeyService(
         account: AccountResponse
     ): CreatePixKeyResponse {
         return bcbClient.registerKey(CreatePixKeyRequest(newPixKey, account))
-            ?: throw IllegalStateException("Falha ao registrar chave no Banco Central" )
+            ?: throw IllegalStateException("Falha ao registrar chave no Banco Central")
     }
 
     /**

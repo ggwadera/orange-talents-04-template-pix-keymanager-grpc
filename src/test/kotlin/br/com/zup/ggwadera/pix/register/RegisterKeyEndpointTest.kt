@@ -216,6 +216,42 @@ internal class RegisterKeyEndpointTest(
         assertEquals(Status.FAILED_PRECONDITION.code, response.status.code)
     }
 
+    @Test
+    internal fun `nao deve salvar chave caso falhe registro no BCB`() {
+        val clientId = UUID.randomUUID()
+        val request = NewPixKeyRequest.newBuilder()
+            .setClientId(clientId.toString())
+            .setKeyType(GrpcKeyType.RANDOM)
+            .setAccountType(GrpcAccountType.CONTA_CORRENTE)
+            .build()
+
+        whenever(itauClient.getAccount(clientId, AccountType.CONTA_CORRENTE)).thenReturn(
+            AccountResponse(
+                tipo = AccountType.CONTA_CORRENTE,
+                instituicao = AccountResponse.BankResponse(
+                    nome = "Itaú Unibanco",
+                    ispb = Account.ISPB_ITAU_UNIBANCO
+                ),
+                agencia = "0123",
+                numero = "012345",
+                titular = AccountResponse.OwnerResponse(
+                    id = clientId,
+                    nome = "Bill Gates",
+                    cpf = "12345678901"
+                )
+            )
+        )
+
+        whenever(bcbClient.registerKey(any())).thenReturn(null)
+
+        val response = assertThrows<StatusRuntimeException> { grpcClient.registerPixKey(request) }
+        with(response.status) {
+            assertEquals(Status.FAILED_PRECONDITION.code, code)
+            assertEquals("Falha ao registrar chave no Banco Central", description)
+        }
+        assertTrue(pixKeyRepository.count() == 0L)
+    }
+
     companion object {
         @JvmStatic
         fun validKeysProvider(): Stream<Arguments> {
