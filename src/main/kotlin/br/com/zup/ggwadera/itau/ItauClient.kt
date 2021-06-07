@@ -37,7 +37,6 @@ data class AccountResponse(
         val cpf: String
     ) {
         fun toModel(): Owner = Owner(
-            id = id,
             name = nome,
             taxIdNumber = cpf
         )
