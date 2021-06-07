@@ -53,6 +53,7 @@ internal class DeletePixKeyEndpointTest(
             PixKey(
                 key = "test@email.com",
                 keyType = KeyType.EMAIL,
+                clientId = UUID.randomUUID(),
                 account = Account(
                     participant = Account.ISPB_ITAU_UNIBANCO,
                     branch = "0123",
@@ -60,7 +61,6 @@ internal class DeletePixKeyEndpointTest(
                     type = AccountType.CONTA_CORRENTE
                 ),
                 owner = Owner(
-                    id = UUID.randomUUID(),
                     name = "Bill Gates",
                     taxIdNumber = "12345678901"
                 ),
@@ -85,14 +85,14 @@ internal class DeletePixKeyEndpointTest(
     @Test
     internal fun `deve remover chave com sucesso`() {
         val request = DeletePixKeyRequest.newBuilder()
-            .setClientId(pixKey.owner.id.toString())
+            .setClientId(pixKey.clientId.toString())
             .setPixId(pixKey.uuid.toString())
             .build()
 
         val response = grpcClient.deletePixKey(request)
 
         with(response) {
-            assertEquals(pixKey.owner.id.toString(), this.clientId)
+            assertEquals(pixKey.clientId.toString(), this.clientId)
             assertEquals(pixKey.uuid.toString(), this.pixId)
         }
         assertFalse(pixKeyRepository.existsById(pixKey.id))
@@ -102,7 +102,7 @@ internal class DeletePixKeyEndpointTest(
     @Test
     internal fun `deve retornar NOT_FOUND caso chave nao exista`() {
         val request = DeletePixKeyRequest.newBuilder()
-            .setClientId(pixKey.owner.id.toString())
+            .setClientId(pixKey.clientId.toString())
             .setPixId(UUID.randomUUID().toString())
             .build()
 
@@ -144,7 +144,7 @@ internal class DeletePixKeyEndpointTest(
     @Test
     internal fun `deve retornar erro FAILED_PRECONDITION caso falhe ao deletar chave no BCB`() {
         val request = DeletePixKeyRequest.newBuilder()
-            .setClientId(pixKey.owner.id.toString())
+            .setClientId(pixKey.clientId.toString())
             .setPixId(pixKey.uuid.toString())
             .build()
 

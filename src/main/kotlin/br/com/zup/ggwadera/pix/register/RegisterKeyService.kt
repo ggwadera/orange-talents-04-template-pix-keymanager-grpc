@@ -22,6 +22,7 @@ class RegisterKeyService(
     private val itauClient: ItauClient,
     private val bcbClient: BcbClient
 ) {
+
     fun saveKey(@Valid newPixKey: NewPixKey): PixKey {
         validate(newPixKey)
         val account = getAccount(newPixKey.clientId, newPixKey.accountType!!)

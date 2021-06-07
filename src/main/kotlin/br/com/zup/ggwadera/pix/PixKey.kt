@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank
 @Table(
     indexes = [
         Index(name = "idx_uuid", columnList = "uuid", unique = true),
-        Index(name = "idx_uuid_ownerId", columnList = "uuid, owner_id")
+        Index(name = "idx_uuid_clientId", columnList = "uuid, clientId", unique = true)
     ]
 )
 class PixKey(
@@ -20,6 +20,9 @@ class PixKey(
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     val keyType: KeyType,
+
+    @Column(nullable = false)
+    val clientId: UUID,
 
     @Embedded
     val account: Account,

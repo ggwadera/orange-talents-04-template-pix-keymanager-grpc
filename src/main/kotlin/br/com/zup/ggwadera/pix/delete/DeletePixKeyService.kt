@@ -22,9 +22,9 @@ class DeletePixKeyService(
         pixKeyRepository.delete(pixKey)
     }
 
-    private fun findKey(pixId: String, clientId: String) = pixKeyRepository.findByUuidAndOwnerId(
+    private fun findKey(pixId: String, clientId: String) = pixKeyRepository.findByUuidAndClientId(
         uuid = UUID.fromString(pixId),
-        ownerId = UUID.fromString(clientId)
+        clientId = UUID.fromString(clientId)
     ) ?: throw NotFoundException("chave não existe ou não pertence ao usuário")
 
     private fun sendKeyDeleteRequest(pixKey: PixKey) = with(pixKey) {

@@ -50,8 +50,9 @@ data class CreatePixKeyResponse(
     fun toModel(clientId: UUID): PixKey = PixKey(
         key = key,
         keyType = keyType,
+        clientId = clientId,
         account = bankAccount.toModel(),
-        owner = owner.toModel(clientId),
+        owner = owner.toModel(),
         createdAt = createdAt
     )
 }
@@ -106,8 +107,7 @@ data class Owner(
     val name: String,
     val taxIdNumber: String
 ) {
-    fun toModel(clientId: UUID): PixOwner = PixOwner(
-        id = clientId,
+    fun toModel(): PixOwner = PixOwner(
         name = name,
         taxIdNumber = taxIdNumber
     )

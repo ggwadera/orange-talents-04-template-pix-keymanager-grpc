@@ -124,10 +124,10 @@ internal class RegisterKeyEndpointTest(
 
         val response = grpcClient.registerPixKey(request)
         assertFalse(response.pixId.isNullOrBlank())
-        val created = pixKeyRepository.findByUuidAndOwnerId(UUID.fromString(response.pixId), clientId)
+        val created = pixKeyRepository.findByUuidAndClientId(UUID.fromString(response.pixId), clientId)
         assertNotNull(created)
         with(created!!) {
-            assertEquals(clientId, owner.id)
+            assertEquals(clientId, this.clientId)
             assertEquals(KeyType.valueOf(keyType.name), this.keyType)
             assertEquals(AccountType.CONTA_CORRENTE, account.type)
             if (keyType != GrpcKeyType.RANDOM) {
@@ -165,6 +165,7 @@ internal class RegisterKeyEndpointTest(
             PixKey(
                 key = "test@email.com",
                 keyType = KeyType.EMAIL,
+                clientId = clientId,
                 account = Account(
                     participant = Account.ISPB_ITAU_UNIBANCO,
                     branch = "0123",
@@ -172,7 +173,6 @@ internal class RegisterKeyEndpointTest(
                     type = AccountType.CONTA_CORRENTE
                 ),
                 owner = Owner(
-                    id = clientId,
                     name = "Bill Gates",
                     taxIdNumber = "12345678901"
                 ),
