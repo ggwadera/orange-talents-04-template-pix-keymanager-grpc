@@ -4,6 +4,7 @@ import br.com.zup.ggwadera.itau.AccountResponse
 import br.com.zup.ggwadera.pix.Account
 import br.com.zup.ggwadera.pix.KeyType
 import br.com.zup.ggwadera.pix.PixKey
+import br.com.zup.ggwadera.pix.find.PixKeyDetails
 import br.com.zup.ggwadera.pix.register.NewPixKey
 import io.micronaut.http.MediaType.APPLICATION_XML
 import io.micronaut.http.annotation.*
@@ -23,6 +24,9 @@ interface BcbClient {
 
     @Delete("/api/v1/pix/keys/{key}")
     fun deleteKey(@PathVariable key: String, @Body body: DeletePixKeyRequest): DeletePixKeyResponse?
+
+    @Get("/api/v1/pix/keys/{key}")
+    fun getKey(@PathVariable key: String): PixKeyDetailsResponse?
 
 }
 
@@ -67,6 +71,22 @@ data class DeletePixKeyResponse(
     val participant: String,
     val deletedAt: LocalDateTime
 )
+
+data class PixKeyDetailsResponse(
+    val key: String,
+    val keyType: KeyType,
+    val createdAt: LocalDateTime,
+    val bankAccount: BankAccount,
+    val owner: Owner
+) {
+    fun toModel() = PixKeyDetails(
+        type = keyType,
+        key = key,
+        createdAt = createdAt,
+        owner = owner.toModel(),
+        account = bankAccount.toModel()
+    )
+}
 
 data class BankAccount(
     val participant: String,
