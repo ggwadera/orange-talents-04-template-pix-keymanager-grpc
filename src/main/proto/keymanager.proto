@@ -21,6 +21,10 @@ service FindKeyService {
     rpc FindPixKey (FindPixKeyRequest) returns (PixKeyDetailsReply) {};
 }
 
+service ListKeysService {
+    rpc ListPixKeys (ListPixKeysRequest) returns (ListPixKeysReply) {};
+}
+
 enum KeyType {
     KEY_TYPE_UNSPECIFIED = 0;
     CPF = 1;
@@ -89,4 +93,21 @@ message PixKeyDetailsReply {
     KeyOwner owner = 5;
     KeyAccount account = 6;
     google.protobuf.Timestamp created_at = 7;
+}
+
+message ListPixKeysRequest {
+    string client_id = 1;
+}
+
+message ListPixKeysReply {
+    message PixKey {
+        string pix_id = 1;
+        KeyType key_type = 2;
+        string key = 3;
+        AccountType account_type = 4;
+        google.protobuf.Timestamp created_at = 5;
+    }
+
+    string client_id = 1;
+    repeated PixKey keys = 2;
 }
