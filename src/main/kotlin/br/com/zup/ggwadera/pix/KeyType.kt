@@ -1,5 +1,6 @@
 package br.com.zup.ggwadera.pix
 
+import br.com.zup.ggwadera.KeyType
 import org.hibernate.validator.internal.constraintvalidators.hv.EmailValidator
 import org.hibernate.validator.internal.constraintvalidators.hv.br.CPFValidator
 
@@ -28,6 +29,8 @@ enum class KeyType {
     };
 
     abstract fun validate(key: String?): Boolean
+
+    fun toGrpc() = KeyType.valueOf(this.name)
 
     companion object {
         private const val CPF_PATTERN = "^[0-9]{11}\$"
