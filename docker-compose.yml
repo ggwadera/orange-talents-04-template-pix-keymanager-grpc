@@ -1,6 +1,16 @@
-version: '3.1'
+version: '3.8'
 
 services:
+  bcb:
+    image: "public.ecr.aws/d8b2x5c9/orange-stack-sat-bcb-pix"
+    ports:
+      - 8082:8082
+
+  erp-itau:
+    image: "public.ecr.aws/d8b2x5c9/orange-stack-sat-itau-erp"
+    ports:
+      - 9091:9091
+
   postgres:
     image: postgres:alpine
     restart: always
@@ -12,6 +22,20 @@ services:
       POSTGRES_DB: key-manager
     volumes:
       - keymanager-db:/var/lib/postgresql/data
+
+  keymanager-grpc:
+    build:
+      context: ./build
+      dockerfile: docker/Dockerfile
+    image: keymanager-grpc
+    ports:
+      - 50051:50051
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/key-manager
+      DB_USER: keymanager
+      DB_PW: secretpassword
+      URL_ITAU: http://erp-itau:9091
+      URL_BCB: http://bcb:8082
 
 volumes:
   keymanager-db:
